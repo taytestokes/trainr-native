@@ -2,16 +2,22 @@ import { SplashScreenController } from "@/components/splash-screen-controller";
 import { SessionProvider, useSession } from "@/contexts/session";
 import { Stack } from "expo-router";
 
+import { apolloClient } from "@/lib/apollo";
+import { ApolloProvider } from "@apollo/client/react";
+
 // Handles layout
 export default function RootLayout() {
   return (
-    // Provide session context to the app
-    <SessionProvider>
-      {/* Handle splash screen */}
-      <SplashScreenController />
-      {/* Handle navigation */}
-      <RootNavigator />
-    </SessionProvider>
+    // Provide apollo client to the app
+    <ApolloProvider client={apolloClient}>
+      {/* Provide session context to the app */}
+      <SessionProvider>
+        {/* Handle splash screen */}
+        <SplashScreenController />
+        {/* Handle navigation */}
+        <RootNavigator />
+      </SessionProvider>
+    </ApolloProvider>
   );
 }
 
