@@ -1,15 +1,12 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Text } from "@/components/ui/text";
 import { useSession } from "@/contexts/session";
 import * as auth from "@/lib/auth";
 import { Link } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, View } from "react-native";
 
 export default function SignupScreen() {
   const { signIn } = useSession();
@@ -33,90 +30,51 @@ export default function SignupScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create account</Text>
+    <View className="flex-1 justify-center gap-4 bg-background p-6">
+      <Text className="text-3xl font-semibold text-foreground">
+        Create account
+      </Text>
 
-      <TextInput
-        autoCapitalize="none"
-        autoComplete="email"
-        keyboardType="email-address"
-        placeholder="Email"
-        style={styles.input}
-        value={email}
-        onChangeText={setEmail}
-      />
+      <View className="gap-2">
+        <Label nativeID="signup-email">Email</Label>
+        <Input
+          aria-labelledby="signup-email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoComplete="email"
+          placeholder="you@example.com"
+        />
+      </View>
 
-      <TextInput
-        placeholder="Password"
-        secureTextEntry
-        style={styles.input}
-        value={password}
-        onChangeText={setPassword}
-      />
+      <View className="gap-2">
+        <Label nativeID="signup-password">Password</Label>
+        <Input
+          aria-labelledby="signup-password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoComplete="new-password"
+          placeholder="••••••••"
+        />
+      </View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
 
-      <Pressable
-        disabled={isSubmitting}
-        style={[styles.button, isSubmitting && styles.buttonDisabled]}
-        onPress={handleSignup}
-      >
+      <Button disabled={isSubmitting} onPress={handleSignup}>
         {isSubmitting ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color="white" />
         ) : (
-          <Text style={styles.buttonText}>Sign up</Text>
+          <Text>Sign up</Text>
         )}
-      </Pressable>
+      </Button>
 
-      <Link href="./login" style={styles.link}>
-        Already have an account? Sign in
+      <Link href="./login">
+        <Text className="text-center text-primary">
+          Already have an account? Sign in
+        </Text>
       </Link>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 24,
-    gap: 12,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 16,
-  },
-  error: {
-    color: "#c00",
-  },
-  button: {
-    marginTop: 8,
-    alignItems: "center",
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: "#208AEF",
-  },
-  buttonDisabled: {
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  link: {
-    marginTop: 8,
-    textAlign: "center",
-    color: "#208AEF",
-    fontSize: 16,
-  },
-});
