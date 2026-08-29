@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Text } from "@/components/ui/text";
 import { useSession } from "@/contexts/session";
 import * as auth from "@/lib/auth";
-import { Link } from "expo-router";
+import { Link, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +22,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const { signIn } = useSession();
+  const { reset } = useLocalSearchParams<{ reset?: string }>();
 
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -59,6 +60,12 @@ export default function LoginScreen() {
           Sign in to continue logging sessions.
         </Text>
       </View>
+
+      {reset === "success" && (
+        <Text className="text-sm text-muted-foreground">
+          Password updated. Sign in with your new password.
+        </Text>
+      )}
 
       <View className="gap-2">
         <Label nativeID="email">Email</Label>
@@ -123,6 +130,12 @@ export default function LoginScreen() {
           <Text>Sign in</Text>
         )}
       </Button>
+
+      <Link href="./forgot-password">
+        <Text className="text-center text-sm text-foreground">
+          Forgot password?
+        </Text>
+      </Link>
 
       <Link href="./signup">
         <Text className="text-muted-foreground text-center text-sm">
