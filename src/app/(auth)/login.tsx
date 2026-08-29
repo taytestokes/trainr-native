@@ -5,60 +5,118 @@ import { Text } from "@/components/ui/text";
 import { useSession } from "@/contexts/session";
 import * as auth from "@/lib/auth";
 import { Link } from "expo-router";
-import { useState } from "react";
 import { ActivityIndicator, View } from "react-native";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { useState } from "react";
+
+const loginSchema = z.object({
+  email: z.email().min(1, "Email is required"),
+  password: z.string().min(1, "Please enter your password"),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const { signIn } = useSession();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleLogin() {
-    setError(null);
-    setIsSubmitting(true);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  async function handleLogin(values: LoginFormValues) {
+    setServerError(null);
+
     try {
-      const session = await auth.signIn(email, password);
+      const session = await auth.signIn(values.email, values.password);
       await signIn(session);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign in failed");
-    } finally {
-      setIsSubmitting(false);
+      setServerError(err instanceof Error ? err.message : "Sign in failed");
     }
   }
 
   return (
     <View className="flex-1 justify-center gap-4 bg-background p-6">
-      <Text className="text-3xl font-semibold text-foreground">Sign in</Text>
+      <View className="gap-2 mb-4">
+        <Text className="text-3xl font-semibold text-foreground">
+          Welcome back
+        </Text>
+
+        <Text className="text-muted-foreground">
+          Sign in to continue logging sessions.
+        </Text>
+      </View>
 
       <View className="gap-2">
         <Label nativeID="email">Email</Label>
-        <Input
-          aria-labelledby="email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoComplete="email"
-          placeholder="you@example.com"
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              aria-labelledby="email"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+              placeholder="you@example.com"
+            />
+          )}
         />
+        {errors.email && (
+          <Text className="text-sm text-destructive">
+            {errors.email.message}
+          </Text>
+        )}
       </View>
 
       <View className="gap-2">
         <Label nativeID="password">Password</Label>
-        <Input
-          aria-labelledby="password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          placeholder="••••••••"
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              aria-labelledby="password"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              secureTextEntry
+              placeholder="••••••••"
+            />
+          )}
         />
+        {errors.password && (
+          <Text className="text-sm text-destructive">
+            {errors.password.message}
+          </Text>
+        )}
       </View>
 
-      {error ? <Text className="text-sm text-destructive">{error}</Text> : null}
+      {serverError && (
+        <Text className="text-sm text-destructive">{serverError}</Text>
+      )}
 
-      <Button disabled={isSubmitting} onPress={handleLogin}>
+      <Button
+        className="mt-4"
+        disabled={isSubmitting}
+        onPress={handleSubmit(handleLogin)}
+      >
         {isSubmitting ? (
           <ActivityIndicator color="white" />
         ) : (
@@ -67,7 +125,9 @@ export default function LoginScreen() {
       </Button>
 
       <Link href="./signup">
-        <Text className="text-center text-primary">Create an account</Text>
+        <Text className="text-muted-foreground text-center text-sm">
+          New here? Create an account
+        </Text>
       </Link>
     </View>
   );

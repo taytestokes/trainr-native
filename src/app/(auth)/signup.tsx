@@ -13,7 +13,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 // Zod schema for sign up form validation
-export const signupSchema = z
+const signupSchema = z
   .object({
     email: z.email().min(1, "Email is required"),
     password: z.string().min(8, "Password must be at least 8 characters"),
@@ -25,7 +25,7 @@ export const signupSchema = z
   });
 
 // Type inference for sign up form values
-export type SignupFormValues = z.infer<typeof signupSchema>;
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupScreen() {
   const { signIn } = useSession();
