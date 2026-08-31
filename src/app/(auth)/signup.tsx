@@ -15,6 +15,7 @@ import { z } from "zod";
 // Zod schema for sign up form validation
 const signupSchema = z
   .object({
+    name: z.string().min(1, "Name is required"),
     email: z.email().min(1, "Email is required"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string().min(1, "Confirm your password"),
@@ -39,6 +40,7 @@ export default function SignupScreen() {
   } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -52,7 +54,7 @@ export default function SignupScreen() {
     // Try to sign user up and sign in (set session)
     try {
       // Mutation to sign up user
-      const session = await signUp(values.email, values.password);
+      const session = await signUp(values.name, values.email, values.password);
       // Set user to session
       await signIn(session);
       // Q: Do we need to redirect to home screen here?
@@ -72,6 +74,31 @@ export default function SignupScreen() {
         <Text className="text-muted-foreground">
           Log resistance training session and track your progress over time.
         </Text>
+      </View>
+
+      <View className="gap-2">
+        <Label nativeID="signup-name">Name</Label>
+        <Controller
+          control={control}
+          name="name"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              aria-invalid={!!errors.name}
+              aria-labelledby="signup-name"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              autoCapitalize="words"
+              autoComplete="name"
+              placeholder="Your name"
+            />
+          )}
+        />
+        {errors.name && (
+          <Text className="text-sm text-destructive">
+            {errors.name.message}
+          </Text>
+        )}
       </View>
 
       <View className="gap-2">

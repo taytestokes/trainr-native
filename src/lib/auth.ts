@@ -1,36 +1,90 @@
+import {
+  SIGN_IN,
+  SIGN_OUT,
+  SIGN_UP,
+  type AuthPayload,
+} from "@/graphql/mutations/auth";
+import { apolloClient } from "@/lib/apollo";
 import type { Session } from "@/types/session";
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
 
-function createMockSession(email: string): Session {
+function toSession(payload: AuthPayload): Session {
   return {
-    accessToken: `mock-token-${Date.now()}`,
-    user: {
-      id: "mock-user-id",
-      email,
-    },
+    accessToken: payload.token,
+    user: payload.user,
   };
+}
+
+function getGraphQLErrorMessage(error: unknown, fallback: string): string {
+  if (CombinedGraphQLErrors.is(error)) {
+    const firstError = error.errors[0];
+    const code = firstError?.extensions?.code;
+
+    if (code === "INTERNAL_SERVER_ERROR") {
+      return fallback;
+    }
+
+    if (firstError?.message?.trim()) {
+      return firstError.message.trim();
+    }
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim();
+  }
+
+  return fallback;
 }
 
 export async function signIn(
   email: string,
-  _password: string,
+  password: string,
 ): Promise<Session> {
-  await new Promise((resolve) => setTimeout(resolve, 400));
+  try {
+    const { data } = await apolloClient.mutate({
+      mutation: SIGN_IN,
+      variables: { input: { email, password } },
+    });
 
-  if (!email.trim()) {
-    throw new Error("Email is required");
+    if (!data?.signIn) {
+      throw new Error("Sign in failed");
+    }
+
+    return toSession(data.signIn);
+  } catch (error) {
+    throw new Error(getGraphQLErrorMessage(error, "Sign in failed"));
   }
-
-  return createMockSession(email.trim());
 }
 
 export async function signUp(
+  name: string,
   email: string,
-  _password: string,
+  password: string,
 ): Promise<Session> {
-  // TODO: Implement actual sign up logic
-  await new Promise((resolve) => setTimeout(resolve, 400));
+  try {
+    const { data } = await apolloClient.mutate({
+      mutation: SIGN_UP,
+      variables: { input: { name, email, password } },
+    });
 
-  return createMockSession(email.trim());
+    if (!data?.signUp) {
+      throw new Error("Sign up failed");
+    }
+
+    return toSession(data.signUp);
+  } catch (error) {
+    throw new Error(getGraphQLErrorMessage(error, "Sign up failed"));
+  }
+}
+
+export async function signOut(): Promise<void> {
+  try {
+    await apolloClient.mutate({ mutation: SIGN_OUT });
+  } catch (error) {
+    if (__DEV__) {
+      console.warn("Server sign out failed:", error);
+    }
+  }
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {

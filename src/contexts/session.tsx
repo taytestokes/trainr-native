@@ -1,3 +1,4 @@
+import * as auth from "@/lib/auth";
 import { apolloClient } from "@/lib/apollo";
 import { getSession, setSession as persistSession } from "@/lib/storage";
 import type { Session } from "@/types/session";
@@ -38,6 +39,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   // Sign out
   const signOut = async () => {
+    await auth.signOut();
     await persistSession(null);
     await apolloClient.resetStore();
     setSession(null);
